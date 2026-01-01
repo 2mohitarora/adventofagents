@@ -24,3 +24,8 @@ source .venv/bin/activate
 agent-starter-pack create day6 --adk
 adk web
 ```
+## Retail AI Location Strategy with Google ADK : Autonomous Site Selection & Market Analysis 
+```bash
+source .venv/bin/activate
+agent-starter-pack create retail-ai-location-strategy --adk
+```
