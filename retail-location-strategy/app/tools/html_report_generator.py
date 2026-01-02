@@ -44,7 +44,7 @@ async def generate_html_report(report_data: str, tool_context: ToolContext) -> d
         # Adapted from original notebook Part 4
         prompt = f"""Generate a comprehensive, professional HTML report for a location intelligence analysis.
 
-This report should be in the style of McKinsey/BCG consulting presentations:
+This report should be in the professional style presentations:
 - Multi-slide format using full-screen scrollable sections
 - Modern, clean, executive-ready design
 - Data-driven visualizations

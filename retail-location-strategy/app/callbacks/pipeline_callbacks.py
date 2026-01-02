@@ -95,7 +95,7 @@ def before_report_generator(callback_context: CallbackContext) -> Optional[types
     """Log start of report generation phase."""
     logger.info("=" * 60)
     logger.info("STAGE 4: REPORT GENERATION - Starting")
-    logger.info("  Generating McKinsey/BCG style HTML executive report...")
+    logger.info("  Generating executive report...")
     logger.info("=" * 60)
 
     # Set current date for state injection in agent instruction

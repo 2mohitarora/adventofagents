@@ -50,7 +50,7 @@ root_agent = Agent(
     description='A strategic partner for retail businesses, guiding them to optimal physical locations that foster growth and profitability.',
     instruction="""Your primary role is to orchestrate the retail location analysis.
 1. Start by greeting the user.
-2. Check if the `TARGET_LOCATION` (Geographic area to analyze (e.g., "Indiranagar, Bangalore")) and `BUSINESS_TYPE` (Type of business (e.g., "coffee shop", "bakery", "gym")) have been provided.
+2. Check if the `TARGET_LOCATION` (Geographic area to analyze (e.g., "Manhattan, New York")) and `BUSINESS_TYPE` (Type of business (e.g., "coffee shop", "bakery", "gym")) have been provided.
 3. If they are missing, **ask the user clarifying questions to get the required information.**
 4. Once you have the necessary details, call the `IntakeAgent` tool to process them.
 5. After the `IntakeAgent` is successful, delegate the full analysis to the `LocationStrategyPipeline`.

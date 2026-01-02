@@ -19,7 +19,7 @@ CURRENT DATE: {current_date}
 
 ## Your Mission
 Format the strategic report data and call the generate_html_report tool to create a
-McKinsey/BCG-style 7-slide HTML presentation.
+professional HTML presentation.
 
 ## Steps
 
@@ -49,7 +49,7 @@ If there was an error, report what went wrong.
 report_generator_agent = LlmAgent(
     name="ReportGeneratorAgent",
     model=FAST_MODEL,
-    description="Generates professional McKinsey/BCG-style HTML executive reports using the generate_html_report tool",
+    description="Generates professional HTML executive reports using the generate_html_report tool",
     instruction=REPORT_GENERATOR_INSTRUCTION,
     generate_content_config=types.GenerateContentConfig(
         http_options=types.HttpOptions(
