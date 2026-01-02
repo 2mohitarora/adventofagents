@@ -11,8 +11,6 @@ This guide provides in-depth documentation for anyone who want to understand, ex
 - [Agents and Tools](#agents-and-tools)
 - [Configuration](#configuration)
 - [Sample Outputs](#sample-outputs)
-- [API vs Agent Comparison](#api-vs-agent-comparison)
-- [Notebook Reference](#notebook-reference)
 - [Troubleshooting](#troubleshooting)
 
 ---
