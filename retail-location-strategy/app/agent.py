@@ -1,36 +1,3 @@
-"""Retail Location Strategy Agent - Root Agent Definition.
-
-This module defines the root agent for the Location Strategy Pipeline.
-It uses a SequentialAgent to orchestrate 6 specialized sub-agents:
-
-1. MarketResearchAgent - Live web research with Google Search
-2. CompetitorMappingAgent - Competitor mapping with Maps Places API
-3. GapAnalysisAgent - Quantitative analysis with Python code execution
-4. StrategyAdvisorAgent - Strategic synthesis with extended reasoning
-5. ReportGeneratorAgent - HTML executive report generation
-6. InfographicGeneratorAgent - Visual infographic generation
-
-The pipeline analyzes a target location for a specific business type and
-produces comprehensive location intelligence including recommendations,
-an HTML report, and an infographic.
-
-Authentication:
-    Set environment variables:
-        GOOGLE_API_KEY=your_api_key
-        GOOGLE_GENAI_USE_VERTEXAI=FALSE
-        MAPS_API_KEY=your_maps_api_key
-
-Usage:
-    Run with: adk web
-
-    The agent expects initial state variables:
-    - target_location: The geographic area to analyze (e.g., "Bangalore, India")
-    - business_type: Type of business to open (e.g., "coffee shop")
-
-    Optional state variables:
-    - maps_api_key: Google Maps API key for Places search
-"""
-
 from google.adk.agents import SequentialAgent
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.agent_tool import AgentTool
