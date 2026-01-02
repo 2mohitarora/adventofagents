@@ -141,41 +141,34 @@ retail-ai-location-strategy/
 ├── DEVELOPER_GUIDE.md       # This file
 │
 ├── app/                     # Agent package
-│   ├── __init__.py          # Exports root_agent for ADK discovery
-│   ├── agent.py             # Root SequentialAgent definition
-│   ├── config.py            # Model and retry configuration
-│   ├── .env                 # Environment variables (from .env.example)
-│   │
-│   ├── sub_agents/          # 7 specialized agents
-│   │   ├── __init__.py
-│   │   ├── intake_agent.py      # Parses user request
-│   │   ├── market_research.py   # Web search for market data
-│   │   ├── competitor_mapping.py # Maps API for competitors
-│   │   ├── gap_analysis.py      # Python code execution
-│   │   ├── strategy_advisor.py  # Extended reasoning + structured output
-│   │   ├── report_generator.py  # HTML report generation
-│   │   └── infographic_generator.py # Image generation
-│   │
-│   ├── tools/               # Custom function tools
-│   │   ├── __init__.py
-│   │   ├── places_search.py     # Google Maps Places API wrapper
-│   │   ├── html_report_generator.py # HTML generation tool
-│   │   └── image_generator.py   # Gemini image generation tool
-│   │
-│   ├── callbacks/           # Pipeline lifecycle callbacks
-│   │   ├── __init__.py
-│   │   └── pipeline_callbacks.py # Before/after hooks for all agents
-│   │
-│   ├── schemas/             # Pydantic output schemas
-│   │   ├── __init__.py
-│   │   └── report_schema.py     # LocationIntelligenceReport and related models
-│   │
-│   └── frontend/            # AG-UI interactive dashboard (optional)
-│       ├── backend/         # FastAPI + ADKAgent wrapper
-│       └── ...              # Next.js app
-│
-└── notebook/                # Original API-based implementation
-    └── retail_ai_location_strategy_gemini_3.ipynb
+    ├── __init__.py          # Exports root_agent for ADK discovery
+    ├── agent.py             # Root SequentialAgent definition
+    ├── config.py            # Model and retry configuration
+    ├── .env                 # Environment variables (from .env.example)
+    ├── sub_agents/          # 7 specialized agents
+    │   ├── __init__.py
+    │   ├── intake_agent.py      # Parses user request
+    │   ├── market_research.py   # Web search for market data
+    │   ├── competitor_mapping.py # Maps API for competitors
+    │   ├── gap_analysis.py      # Python code execution
+    │   ├── strategy_advisor.py  # Extended reasoning + structured output
+    │   ├── report_generator.py  # HTML report generation
+    │   └── infographic_generator.py # Image generation
+    │
+    ├── tools/               # Custom function tools
+    │   ├── __init__.py
+    │   ├── places_search.py     # Google Maps Places API wrapper
+    │   ├── html_report_generator.py # HTML generation tool
+    │   └── image_generator.py   # Gemini image generation tool
+    │
+    ├── callbacks/           # Pipeline lifecycle callbacks
+    │   ├── __init__.py
+    │   └── pipeline_callbacks.py # Before/after hooks for all agents
+    │
+    ├── schemas/             # Pydantic output schemas
+        ├── __init__.py
+        └── report_schema.py     # LocationIntelligenceReport and related models
+
 ```
 
 ---
