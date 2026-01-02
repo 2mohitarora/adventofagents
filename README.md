@@ -17,6 +17,7 @@ uvx --from google-adk adk web
 source .venv/bin/activate
 adk create day3
 adk web
+deactivate
 ```
 ## Retail AI Location Strategy with Google ADK : Autonomous Site Selection & Market Analysis 
 ```bash
