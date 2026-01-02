@@ -1,47 +1,93 @@
-from google.adk.agents import Agent
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
-from google.adk.tools import google_search
-from google.genai import types
-import asyncio
+"""Retail Location Strategy Agent - Root Agent Definition.
 
-# CONFIGURATION
-APP_NAME = "simple_search_agent"
-USER_ID = "user_default"
-SESSION_ID = "session_01"
+This module defines the root agent for the Location Strategy Pipeline.
+It uses a SequentialAgent to orchestrate 6 specialized sub-agents:
 
-# AGENT DEFINITION
-root_agent = Agent(
-    name="search_agent",
-    model="gemini-2.5-flash",
-    description="A helpful assistant that can search Google.",
-    instruction="""
-    You are a helpful assistant with access to Google Search.
-    
-    If the user asks a question that requires current information or facts, use the 'google_search' tool.
-    Always cite your sources implicitly by providing the answer clearly based on the search results.
-    """,
-    # This is the only tool enabled
-    tools=[google_search]
+1. MarketResearchAgent - Live web research with Google Search
+2. CompetitorMappingAgent - Competitor mapping with Maps Places API
+3. GapAnalysisAgent - Quantitative analysis with Python code execution
+4. StrategyAdvisorAgent - Strategic synthesis with extended reasoning
+5. ReportGeneratorAgent - HTML executive report generation
+6. InfographicGeneratorAgent - Visual infographic generation
+
+The pipeline analyzes a target location for a specific business type and
+produces comprehensive location intelligence including recommendations,
+an HTML report, and an infographic.
+
+Authentication:
+    Set environment variables:
+        GOOGLE_API_KEY=your_api_key
+        GOOGLE_GENAI_USE_VERTEXAI=FALSE
+        MAPS_API_KEY=your_maps_api_key
+
+Usage:
+    Run with: adk web
+
+    The agent expects initial state variables:
+    - target_location: The geographic area to analyze (e.g., "Bangalore, India")
+    - business_type: Type of business to open (e.g., "coffee shop")
+
+    Optional state variables:
+    - maps_api_key: Google Maps API key for Places search
+"""
+
+from google.adk.agents import SequentialAgent
+from google.adk.agents.llm_agent import Agent
+from google.adk.tools.agent_tool import AgentTool
+
+
+from .sub_agents.intake_agent.agent import intake_agent
+from .sub_agents.market_research.agent import market_research_agent
+from .sub_agents.competitor_mapping.agent import competitor_mapping_agent
+from .sub_agents.gap_analysis.agent import gap_analysis_agent
+from .sub_agents.strategy_advisor.agent import strategy_advisor_agent
+from .sub_agents.infographic_generator.agent import infographic_generator_agent
+from .sub_agents.report_generator.agent import report_generator_agent
+
+from .config import FAST_MODEL, APP_NAME
+
+# location_strategy_pipeline
+location_strategy_pipeline = SequentialAgent(
+    name="LocationStrategyPipeline",
+    description="""Comprehensive retail location strategy analysis pipeline.
+
+This agent analyzes a target location for a specific business type and produces:
+1. Market research findings from live web data
+2. Competitor mapping from Google Maps Places API
+3. Quantitative gap analysis with zone rankings
+4. Strategic recommendations with structured JSON output
+5. Professional HTML executive report
+6. Visual infographic summary
+
+To use, get the following details:
+- target_location: {target_location}
+- business_type: {business_type}
+
+The analysis runs automatically through all stages and produces artifacts
+including JSON report, HTML report, and infographic image.
+""",
+    sub_agents=[
+        market_research_agent,      # Part 1: Market research with search
+        competitor_mapping_agent,   # Part 2A: Competitor mapping with Maps
+        gap_analysis_agent,         # Part 2B: Gap analysis with code exec
+        strategy_advisor_agent,     # Part 3: Strategy synthesis
+        report_generator_agent,     # Part 4: HTML report generation
+        infographic_generator_agent,  # Part 5: Infographic generation
+    ],
 )
 
-# Session and Runner
-async def setup_session_and_runner():
-    session_service = InMemorySessionService()
-    session = await session_service.create_session(app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID)
-    runner = Runner(agent=root_agent, app_name=APP_NAME, session_service=session_service)
-    return session, runner
-
-# Agent Interaction
-async def call_agent_async(query):
-    content = types.Content(role='user', parts=[types.Part(text=query)])
-    session, runner = await setup_session_and_runner()
-    events = runner.run_async(user_id=USER_ID, session_id=SESSION_ID, new_message=content)
-
-    async for event in events:
-        if event.is_final_response():
-            final_response = event.content.parts[0].text
-            print("Agent Response: ", final_response)
-
-if __name__ == "__main__":
-    asyncio.run(call_agent_async("what's the latest ai news?"))
+# Root agent orchestrating the complete location strategy pipeline
+root_agent = Agent(
+    model=FAST_MODEL,
+    name=APP_NAME,
+    description='A strategic partner for retail businesses, guiding them to optimal physical locations that foster growth and profitability.',
+    instruction="""Your primary role is to orchestrate the retail location analysis.
+1. Start by greeting the user.
+2. Check if the `TARGET_LOCATION` (Geographic area to analyze (e.g., "Indiranagar, Bangalore")) and `BUSINESS_TYPE` (Type of business (e.g., "coffee shop", "bakery", "gym")) have been provided.
+3. If they are missing, **ask the user clarifying questions to get the required information.**
+4. Once you have the necessary details, call the `IntakeAgent` tool to process them.
+5. After the `IntakeAgent` is successful, delegate the full analysis to the `LocationStrategyPipeline`.
+Your main function is to manage this workflow conversationally.""",
+    sub_agents=[location_strategy_pipeline],
+    tools = [AgentTool(intake_agent)], # Part 0: Parse user request
+)
