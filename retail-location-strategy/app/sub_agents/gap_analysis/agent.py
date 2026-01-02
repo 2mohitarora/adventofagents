@@ -1,87 +1,104 @@
-from typing import Optional
-
 from google.adk.agents import LlmAgent
-from google.adk.agents.callback_context import CallbackContext
+from google.adk.code_executors import BuiltInCodeExecutor
 from google.genai import types
-from pydantic import BaseModel, Field
 
-from ...config import FAST_MODEL, RETRY_INITIAL_DELAY, RETRY_ATTEMPTS
-
-
-class UserRequest(BaseModel):
-    """Structured output for parsing user's location strategy request."""
-
-    target_location: str = Field(
-        description="The geographic location/area to analyze (e.g., 'Indiranagar, Bangalore', 'Manhattan, New York')"
-    )
-    business_type: str = Field(
-        description="The type of business the user wants to open (e.g., 'coffee shop', 'bakery', 'gym', 'restaurant')"
-    )
-    additional_context: Optional[str] = Field(
-        default=None,
-        description="Any additional context or requirements mentioned by the user"
-    )
+from ...config import CODE_EXEC_MODEL, RETRY_INITIAL_DELAY, RETRY_ATTEMPTS
+from ...callbacks import before_gap_analysis, after_gap_analysis
 
 
-def after_intake(callback_context: CallbackContext) -> Optional[types.Content]:
-    """After intake, copy the parsed values to state for other agents."""
-    parsed = callback_context.state.get("parsed_request", {})
+GAP_ANALYSIS_INSTRUCTION = """You are a data scientist analyzing market opportunities using quantitative methods.
 
-    if isinstance(parsed, dict):
-        # Extract values from parsed request
-        callback_context.state["target_location"] = parsed.get("target_location", "")
-        callback_context.state["business_type"] = parsed.get("business_type", "")
-        callback_context.state["additional_context"] = parsed.get("additional_context", "")
-    elif hasattr(parsed, "target_location"):
-        # Handle Pydantic model
-        callback_context.state["target_location"] = parsed.target_location
-        callback_context.state["business_type"] = parsed.business_type
-        callback_context.state["additional_context"] = parsed.additional_context or ""
+Your task is to perform advanced gap analysis on the data collected from previous stages.
 
-    # Track intake stage completion
-    stages = callback_context.state.get("stages_completed", [])
-    stages.append("intake")
-    callback_context.state["stages_completed"] = stages
+TARGET LOCATION: {target_location}
+BUSINESS TYPE: {business_type}
+CURRENT DATE: {current_date}
 
-    # Note: current_date is set in each agent's before_callback to ensure it's always available
-    return None
+## Available Data
 
+### MARKET RESEARCH FINDINGS (Part 1):
+{market_research_findings}
 
-INTAKE_INSTRUCTION = """You are a request parser for a retail location intelligence system.
+### COMPETITOR ANALYSIS (Part 2):
+{competitor_analysis}
 
-Your task is to extract the target location and business type from the user's request.
+## Your Mission
+Write and execute Python code to perform comprehensive quantitative analysis.
 
-## Examples
+## Analysis Steps
 
-User: "I want to open a coffee shop in Indiranagar, Bangalore"
-→ target_location: "Indiranagar, Bangalore"
-→ business_type: "coffee shop"
+### Step 1: Parse Competitor Data
+Extract from the competitor analysis:
+- Competitor names and locations
+- Ratings and review counts
+- Zone/area classifications
+- Business types (chain vs independent)
 
-User: "Analyze the market for a new gym in downtown Seattle"
-→ target_location: "downtown Seattle"
-→ business_type: "gym"
+### Step 2: Extract Market Fundamentals
+From the market research:
+- Population estimates
+- Income levels (assign numeric scores)
+- Infrastructure quality indicators
+- Foot traffic patterns
 
-User: "Help me find the best location for a bakery in Mumbai"
-→ target_location: "Mumbai"
-→ business_type: "bakery"
+### Step 3: Calculate Zone Metrics
+For each identified zone, compute:
 
-User: "Where should I open my restaurant in San Francisco's Mission District?"
-→ target_location: "Mission District, San Francisco"
-→ business_type: "restaurant"
+**Basic Metrics:**
+- Competitor count
+- Competitor density (per estimated area)
+- Average competitor rating
+- Total review volume
 
-## Instructions
-1. Extract the geographic location mentioned by the user
-2. Identify the type of business they want to open
-3. Note any additional context or requirements
+**Quality Metrics:**
+- Competition Quality Score: Weighted by ratings (4.5+ = high threat)
+- Chain Dominance Ratio: % of chain/franchise competitors
+- High Performer Count: Number of 4.5+ rated competitors
 
-If the user doesn't specify a clear location or business type, make a reasonable inference or ask for clarification.
+**Opportunity Metrics:**
+- Demand Signal: Based on population, income, infrastructure
+- Market Saturation Index: (Competitors × Quality) / Demand
+- Viability Score: Multi-factor weighted score
+
+### Step 4: Zone Categorization
+Classify each zone as:
+- **SATURATED**: High competition, low opportunity
+- **MODERATE**: Balanced market, moderate opportunity
+- **OPPORTUNITY**: Low competition, high potential
+
+Also assign:
+- Risk Level: Low / Medium / High
+- Investment Tier: Based on expected costs
+- Best Customer Segment: Target demographic
+
+### Step 5: Rank Top Zones
+Create a weighted ranking considering:
+- Low market saturation (weight: 30%)
+- High demand signals (weight: 30%)
+- Low chain dominance (weight: 15%)
+- Infrastructure quality (weight: 15%)
+- Manageable costs (weight: 10%)
+
+### Step 6: Output Tables
+Generate clear output tables showing:
+1. All zones with computed metrics
+2. Top 3 recommended zones with scores
+3. Risk assessment matrix
+
+## Code Guidelines
+- Use pandas for data manipulation
+- Print all results clearly formatted
+- Include intermediate calculations for transparency
+- Handle missing data gracefully
+
+Execute the code and provide actionable strategic recommendations based on the quantitative findings.
 """
 
-intake_agent = LlmAgent(
-    name="IntakeAgent",
-    model=FAST_MODEL,
-    description="Parses user request to extract target location and business type",
-    instruction=INTAKE_INSTRUCTION,
+gap_analysis_agent = LlmAgent(
+    name="GapAnalysisAgent",
+    model=CODE_EXEC_MODEL,
+    description="Performs quantitative gap analysis using Python code execution for zone rankings and viability scores",
+    instruction=GAP_ANALYSIS_INSTRUCTION,
     generate_content_config=types.GenerateContentConfig(
         http_options=types.HttpOptions(
             retry_options=types.HttpRetryOptions(
@@ -90,7 +107,8 @@ intake_agent = LlmAgent(
             ),
         ),
     ),
-    output_schema=UserRequest,
-    output_key="parsed_request",
-    after_agent_callback=after_intake,
+    code_executor=BuiltInCodeExecutor(),
+    output_key="gap_analysis",
+    before_agent_callback=before_gap_analysis,
+    after_agent_callback=after_gap_analysis,
 )

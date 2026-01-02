@@ -1,87 +1,56 @@
-from typing import Optional
-
 from google.adk.agents import LlmAgent
-from google.adk.agents.callback_context import CallbackContext
 from google.genai import types
-from pydantic import BaseModel, Field
 
 from ...config import FAST_MODEL, RETRY_INITIAL_DELAY, RETRY_ATTEMPTS
+from ...tools import generate_html_report
+from ...callbacks import before_report_generator, after_report_generator
 
 
-class UserRequest(BaseModel):
-    """Structured output for parsing user's location strategy request."""
+REPORT_GENERATOR_INSTRUCTION = """You are an executive report generator for location intelligence analysis.
 
-    target_location: str = Field(
-        description="The geographic location/area to analyze (e.g., 'Indiranagar, Bangalore', 'Manhattan, New York')"
-    )
-    business_type: str = Field(
-        description="The type of business the user wants to open (e.g., 'coffee shop', 'bakery', 'gym', 'restaurant')"
-    )
-    additional_context: Optional[str] = Field(
-        default=None,
-        description="Any additional context or requirements mentioned by the user"
-    )
+Your task is to create a professional HTML executive report using the generate_html_report tool.
 
+TARGET LOCATION: {target_location}
+BUSINESS TYPE: {business_type}
+CURRENT DATE: {current_date}
 
-def after_intake(callback_context: CallbackContext) -> Optional[types.Content]:
-    """After intake, copy the parsed values to state for other agents."""
-    parsed = callback_context.state.get("parsed_request", {})
+## Strategic Report Data
+{strategic_report}
 
-    if isinstance(parsed, dict):
-        # Extract values from parsed request
-        callback_context.state["target_location"] = parsed.get("target_location", "")
-        callback_context.state["business_type"] = parsed.get("business_type", "")
-        callback_context.state["additional_context"] = parsed.get("additional_context", "")
-    elif hasattr(parsed, "target_location"):
-        # Handle Pydantic model
-        callback_context.state["target_location"] = parsed.target_location
-        callback_context.state["business_type"] = parsed.business_type
-        callback_context.state["additional_context"] = parsed.additional_context or ""
+## Your Mission
+Format the strategic report data and call the generate_html_report tool to create a
+McKinsey/BCG-style 7-slide HTML presentation.
 
-    # Track intake stage completion
-    stages = callback_context.state.get("stages_completed", [])
-    stages.append("intake")
-    callback_context.state["stages_completed"] = stages
+## Steps
 
-    # Note: current_date is set in each agent's before_callback to ensure it's always available
-    return None
+### Step 1: Format the Report Data
+Prepare a comprehensive data summary from the strategic report above, including:
+- Analysis overview (location, business type, date, market validation)
+- Top recommendation details (location, score, opportunity type, strengths, concerns)
+- Competition metrics (total competitors, density, chain dominance, ratings)
+- Market characteristics (population, income, infrastructure, foot traffic, rental costs)
+- Alternative locations (name, score, strength, concern, why not top)
+- Next steps (actionable items)
+- Key insights (strategic observations)
+- Methodology summary
 
+### Step 2: Call the Tool
+Call the generate_html_report tool with the formatted report data.
+The tool will:
+- Generate a professional 7-slide HTML report
+- Save it as an artifact named "executive_report.html"
+- Return the status and artifact details
 
-INTAKE_INSTRUCTION = """You are a request parser for a retail location intelligence system.
-
-Your task is to extract the target location and business type from the user's request.
-
-## Examples
-
-User: "I want to open a coffee shop in Indiranagar, Bangalore"
-→ target_location: "Indiranagar, Bangalore"
-→ business_type: "coffee shop"
-
-User: "Analyze the market for a new gym in downtown Seattle"
-→ target_location: "downtown Seattle"
-→ business_type: "gym"
-
-User: "Help me find the best location for a bakery in Mumbai"
-→ target_location: "Mumbai"
-→ business_type: "bakery"
-
-User: "Where should I open my restaurant in San Francisco's Mission District?"
-→ target_location: "Mission District, San Francisco"
-→ business_type: "restaurant"
-
-## Instructions
-1. Extract the geographic location mentioned by the user
-2. Identify the type of business they want to open
-3. Note any additional context or requirements
-
-If the user doesn't specify a clear location or business type, make a reasonable inference or ask for clarification.
+### Step 3: Report Result
+After the tool returns, confirm the report was generated successfully.
+If there was an error, report what went wrong.
 """
 
-intake_agent = LlmAgent(
-    name="IntakeAgent",
+report_generator_agent = LlmAgent(
+    name="ReportGeneratorAgent",
     model=FAST_MODEL,
-    description="Parses user request to extract target location and business type",
-    instruction=INTAKE_INSTRUCTION,
+    description="Generates professional McKinsey/BCG-style HTML executive reports using the generate_html_report tool",
+    instruction=REPORT_GENERATOR_INSTRUCTION,
     generate_content_config=types.GenerateContentConfig(
         http_options=types.HttpOptions(
             retry_options=types.HttpRetryOptions(
@@ -90,7 +59,8 @@ intake_agent = LlmAgent(
             ),
         ),
     ),
-    output_schema=UserRequest,
-    output_key="parsed_request",
-    after_agent_callback=after_intake,
+    tools=[generate_html_report],
+    output_key="report_generation_result",
+    before_agent_callback=before_report_generator,
+    after_agent_callback=after_report_generator,
 )

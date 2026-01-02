@@ -1,87 +1,88 @@
-from typing import Optional
-
 from google.adk.agents import LlmAgent
-from google.adk.agents.callback_context import CallbackContext
 from google.genai import types
-from pydantic import BaseModel, Field
 
 from ...config import FAST_MODEL, RETRY_INITIAL_DELAY, RETRY_ATTEMPTS
+from ...tools import generate_infographic
+from ...callbacks import before_infographic_generator, after_infographic_generator
 
 
-class UserRequest(BaseModel):
-    """Structured output for parsing user's location strategy request."""
+INFOGRAPHIC_GENERATOR_INSTRUCTION = """You are a data visualization specialist creating executive-ready infographics.
 
-    target_location: str = Field(
-        description="The geographic location/area to analyze (e.g., 'Indiranagar, Bangalore', 'Manhattan, New York')"
-    )
-    business_type: str = Field(
-        description="The type of business the user wants to open (e.g., 'coffee shop', 'bakery', 'gym', 'restaurant')"
-    )
-    additional_context: Optional[str] = Field(
-        default=None,
-        description="Any additional context or requirements mentioned by the user"
-    )
+Your task is to generate a visual infographic summarizing the location intelligence analysis.
 
+TARGET LOCATION: {target_location}
+BUSINESS TYPE: {business_type}
+CURRENT DATE: {current_date}
 
-def after_intake(callback_context: CallbackContext) -> Optional[types.Content]:
-    """After intake, copy the parsed values to state for other agents."""
-    parsed = callback_context.state.get("parsed_request", {})
+## Strategic Report Data
+{strategic_report}
 
-    if isinstance(parsed, dict):
-        # Extract values from parsed request
-        callback_context.state["target_location"] = parsed.get("target_location", "")
-        callback_context.state["business_type"] = parsed.get("business_type", "")
-        callback_context.state["additional_context"] = parsed.get("additional_context", "")
-    elif hasattr(parsed, "target_location"):
-        # Handle Pydantic model
-        callback_context.state["target_location"] = parsed.target_location
-        callback_context.state["business_type"] = parsed.business_type
-        callback_context.state["additional_context"] = parsed.additional_context or ""
+## Your Mission
+Create a compelling infographic that visually summarizes the key findings from the analysis.
 
-    # Track intake stage completion
-    stages = callback_context.state.get("stages_completed", [])
-    stages.append("intake")
-    callback_context.state["stages_completed"] = stages
+## Steps
 
-    # Note: current_date is set in each agent's before_callback to ensure it's always available
-    return None
+### Step 1: Extract Key Data Points
+From the strategic report, identify:
+- Target location and business type
+- Top recommended location with score
+- Total competitors found
+- Number of zones analyzed
+- 3-5 key strategic insights
+- Top strengths and concerns
+- Market validation verdict
 
+### Step 2: Create Data Summary
+Compose a concise data summary suitable for visualization:
 
-INTAKE_INSTRUCTION = """You are a request parser for a retail location intelligence system.
+**FORMAT YOUR SUMMARY AS:**
 
-Your task is to extract the target location and business type from the user's request.
+LOCATION INTELLIGENCE REPORT: [Business Type] in [Target Location]
+Analysis Date: [Date]
 
-## Examples
+TOP RECOMMENDATION:
+[Location Name] - Score: [XX]/100
+Type: [Opportunity Type]
 
-User: "I want to open a coffee shop in Indiranagar, Bangalore"
-→ target_location: "Indiranagar, Bangalore"
-→ business_type: "coffee shop"
+KEY METRICS:
+- Total Competitors: [X]
+- Zones Analyzed: [X]
+- Market Status: [Validated/Cautionary]
 
-User: "Analyze the market for a new gym in downtown Seattle"
-→ target_location: "downtown Seattle"
-→ business_type: "gym"
+TOP STRENGTHS:
+1. [Strength 1]
+2. [Strength 2]
+3. [Strength 3]
 
-User: "Help me find the best location for a bakery in Mumbai"
-→ target_location: "Mumbai"
-→ business_type: "bakery"
+KEY INSIGHTS:
+- [Insight 1]
+- [Insight 2]
+- [Insight 3]
 
-User: "Where should I open my restaurant in San Francisco's Mission District?"
-→ target_location: "Mission District, San Francisco"
-→ business_type: "restaurant"
+VERDICT: [One-line market recommendation]
 
-## Instructions
-1. Extract the geographic location mentioned by the user
-2. Identify the type of business they want to open
-3. Note any additional context or requirements
+### Step 3: Generate Infographic
+Call the generate_infographic tool with your data summary.
 
-If the user doesn't specify a clear location or business type, make a reasonable inference or ask for clarification.
+### Step 4: Report Result
+After the tool returns, store the result for the callback to process.
+If successful, confirm the infographic was generated.
+If failed, report the error for troubleshooting.
+
+## Output
+The generate_infographic tool will return a result dict containing:
+- status: "success" or "error"
+- image_data: Base64 encoded PNG (if successful)
+- error_message: Error details (if failed)
+
+Store this result so the after_agent_callback can save the artifact.
 """
 
-intake_agent = LlmAgent(
-    name="IntakeAgent",
+infographic_generator_agent = LlmAgent(
+    name="InfographicGeneratorAgent",
     model=FAST_MODEL,
-    description="Parses user request to extract target location and business type",
-    instruction=INTAKE_INSTRUCTION,
+    description="Generates visual infographic summary using Gemini image generation",
+    instruction=INFOGRAPHIC_GENERATOR_INSTRUCTION,
     generate_content_config=types.GenerateContentConfig(
         http_options=types.HttpOptions(
             retry_options=types.HttpRetryOptions(
@@ -90,7 +91,8 @@ intake_agent = LlmAgent(
             ),
         ),
     ),
-    output_schema=UserRequest,
-    output_key="parsed_request",
-    after_agent_callback=after_intake,
+    tools=[generate_infographic],
+    output_key="infographic_result",
+    before_agent_callback=before_infographic_generator,
+    after_agent_callback=after_infographic_generator,
 )

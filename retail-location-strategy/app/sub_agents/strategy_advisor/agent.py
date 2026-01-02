@@ -1,87 +1,85 @@
-from typing import Optional
-
 from google.adk.agents import LlmAgent
-from google.adk.agents.callback_context import CallbackContext
+from google.adk.planners import BuiltInPlanner
 from google.genai import types
-from pydantic import BaseModel, Field
+from google.genai.types import ThinkingConfig
 
-from ...config import FAST_MODEL, RETRY_INITIAL_DELAY, RETRY_ATTEMPTS
-
-
-class UserRequest(BaseModel):
-    """Structured output for parsing user's location strategy request."""
-
-    target_location: str = Field(
-        description="The geographic location/area to analyze (e.g., 'Indiranagar, Bangalore', 'Manhattan, New York')"
-    )
-    business_type: str = Field(
-        description="The type of business the user wants to open (e.g., 'coffee shop', 'bakery', 'gym', 'restaurant')"
-    )
-    additional_context: Optional[str] = Field(
-        default=None,
-        description="Any additional context or requirements mentioned by the user"
-    )
+from ...config import PRO_MODEL, RETRY_INITIAL_DELAY, RETRY_ATTEMPTS
+from ...schemas import LocationIntelligenceReport
+from ...callbacks import before_strategy_advisor, after_strategy_advisor
 
 
-def after_intake(callback_context: CallbackContext) -> Optional[types.Content]:
-    """After intake, copy the parsed values to state for other agents."""
-    parsed = callback_context.state.get("parsed_request", {})
+STRATEGY_ADVISOR_INSTRUCTION = """You are a senior strategy consultant synthesizing location intelligence findings.
 
-    if isinstance(parsed, dict):
-        # Extract values from parsed request
-        callback_context.state["target_location"] = parsed.get("target_location", "")
-        callback_context.state["business_type"] = parsed.get("business_type", "")
-        callback_context.state["additional_context"] = parsed.get("additional_context", "")
-    elif hasattr(parsed, "target_location"):
-        # Handle Pydantic model
-        callback_context.state["target_location"] = parsed.target_location
-        callback_context.state["business_type"] = parsed.business_type
-        callback_context.state["additional_context"] = parsed.additional_context or ""
+Your task is to analyze all research and provide actionable strategic recommendations.
 
-    # Track intake stage completion
-    stages = callback_context.state.get("stages_completed", [])
-    stages.append("intake")
-    callback_context.state["stages_completed"] = stages
+TARGET LOCATION: {target_location}
+BUSINESS TYPE: {business_type}
+CURRENT DATE: {current_date}
 
-    # Note: current_date is set in each agent's before_callback to ensure it's always available
-    return None
+## Available Data
 
+### MARKET RESEARCH FINDINGS (Part 1):
+{market_research_findings}
 
-INTAKE_INSTRUCTION = """You are a request parser for a retail location intelligence system.
+### COMPETITOR ANALYSIS (Part 2A):
+{competitor_analysis}
 
-Your task is to extract the target location and business type from the user's request.
+### GAP ANALYSIS (Part 2B):
+{gap_analysis}
 
-## Examples
+## Your Mission
+Synthesize all findings into a comprehensive strategic recommendation.
 
-User: "I want to open a coffee shop in Indiranagar, Bangalore"
-→ target_location: "Indiranagar, Bangalore"
-→ business_type: "coffee shop"
+## Analysis Framework
 
-User: "Analyze the market for a new gym in downtown Seattle"
-→ target_location: "downtown Seattle"
-→ business_type: "gym"
+### 1. Data Integration
+Review all inputs carefully:
+- Market research demographics and trends
+- Competitor locations, ratings, and patterns
+- Quantitative gap analysis metrics and zone rankings
 
-User: "Help me find the best location for a bakery in Mumbai"
-→ target_location: "Mumbai"
-→ business_type: "bakery"
+### 2. Strategic Synthesis
+For each promising zone, evaluate:
+- Opportunity Type: Categorize (e.g., "Metro First-Mover", "Residential Sticky", "Mall Impulse")
+- Overall Score: 0-100 weighted composite
+- Strengths: Top 3-4 factors with evidence from the analysis
+- Concerns: Top 2-3 risks with specific mitigation strategies
+- Competition Profile: Summarize density, quality, chain presence
+- Market Characteristics: Population, income, infrastructure, foot traffic, costs
+- Best Customer Segment: Primary target demographic
+- Next Steps: 3-5 specific actionable recommendations
 
-User: "Where should I open my restaurant in San Francisco's Mission District?"
-→ target_location: "Mission District, San Francisco"
-→ business_type: "restaurant"
+### 3. Top Recommendation Selection
+Choose the single best location based on:
+- Highest weighted opportunity score
+- Best balance of opportunity vs risk
+- Most aligned with business type requirements
+- Clear competitive advantage potential
 
-## Instructions
-1. Extract the geographic location mentioned by the user
-2. Identify the type of business they want to open
-3. Note any additional context or requirements
+### 4. Alternative Locations
+Identify 2-3 alternative locations:
+- Brief scoring and categorization
+- Key strength and concern for each
+- Why it's not the top choice
 
-If the user doesn't specify a clear location or business type, make a reasonable inference or ask for clarification.
+### 5. Strategic Insights
+Provide 4-6 key insights that span the entire analysis:
+- Market-level observations
+- Competitive dynamics
+- Timing considerations
+- Success factors
+
+## Output Requirements
+Your response MUST conform to the LocationIntelligenceReport schema.
+Ensure all fields are populated with specific, actionable information.
+Use evidence from the analysis to support all recommendations.
 """
 
-intake_agent = LlmAgent(
-    name="IntakeAgent",
-    model=FAST_MODEL,
-    description="Parses user request to extract target location and business type",
-    instruction=INTAKE_INSTRUCTION,
+strategy_advisor_agent = LlmAgent(
+    name="StrategyAdvisorAgent",
+    model=PRO_MODEL,
+    description="Synthesizes findings into strategic recommendations using extended reasoning and structured output",
+    instruction=STRATEGY_ADVISOR_INSTRUCTION,
     generate_content_config=types.GenerateContentConfig(
         http_options=types.HttpOptions(
             retry_options=types.HttpRetryOptions(
@@ -90,7 +88,14 @@ intake_agent = LlmAgent(
             ),
         ),
     ),
-    output_schema=UserRequest,
-    output_key="parsed_request",
-    after_agent_callback=after_intake,
+    planner=BuiltInPlanner(
+        thinking_config=ThinkingConfig(
+            include_thoughts=False,  # Must be False when using output_schema
+            thinking_budget=-1,  # -1 means unlimited thinking budget
+        )
+    ),
+    output_schema=LocationIntelligenceReport,
+    output_key="strategic_report",
+    before_agent_callback=before_strategy_advisor,
+    after_agent_callback=after_strategy_advisor,
 )

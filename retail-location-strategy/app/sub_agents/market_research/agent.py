@@ -1,87 +1,62 @@
-from typing import Optional
-
 from google.adk.agents import LlmAgent
-from google.adk.agents.callback_context import CallbackContext
+from google.adk.tools import google_search
 from google.genai import types
-from pydantic import BaseModel, Field
 
 from ...config import FAST_MODEL, RETRY_INITIAL_DELAY, RETRY_ATTEMPTS
+from ...callbacks import before_market_research, after_market_research
 
 
-class UserRequest(BaseModel):
-    """Structured output for parsing user's location strategy request."""
+MARKET_RESEARCH_INSTRUCTION = """You are a market research analyst specializing in retail location intelligence.
 
-    target_location: str = Field(
-        description="The geographic location/area to analyze (e.g., 'Indiranagar, Bangalore', 'Manhattan, New York')"
-    )
-    business_type: str = Field(
-        description="The type of business the user wants to open (e.g., 'coffee shop', 'bakery', 'gym', 'restaurant')"
-    )
-    additional_context: Optional[str] = Field(
-        default=None,
-        description="Any additional context or requirements mentioned by the user"
-    )
+Your task is to research and validate the target market for a new business location.
 
+TARGET LOCATION: {target_location}
+BUSINESS TYPE: {business_type}
+CURRENT DATE: {current_date}
 
-def after_intake(callback_context: CallbackContext) -> Optional[types.Content]:
-    """After intake, copy the parsed values to state for other agents."""
-    parsed = callback_context.state.get("parsed_request", {})
+## Research Focus Areas
 
-    if isinstance(parsed, dict):
-        # Extract values from parsed request
-        callback_context.state["target_location"] = parsed.get("target_location", "")
-        callback_context.state["business_type"] = parsed.get("business_type", "")
-        callback_context.state["additional_context"] = parsed.get("additional_context", "")
-    elif hasattr(parsed, "target_location"):
-        # Handle Pydantic model
-        callback_context.state["target_location"] = parsed.target_location
-        callback_context.state["business_type"] = parsed.business_type
-        callback_context.state["additional_context"] = parsed.additional_context or ""
+### 1. DEMOGRAPHICS
+- Age distribution (identify key age groups)
+- Income levels and purchasing power
+- Lifestyle indicators (professionals, students, families)
+- Population density and growth trends
 
-    # Track intake stage completion
-    stages = callback_context.state.get("stages_completed", [])
-    stages.append("intake")
-    callback_context.state["stages_completed"] = stages
+### 2. MARKET GROWTH
+- Population trends (growing, stable, declining)
+- New residential and commercial developments
+- Infrastructure improvements (metro, roads, tech parks)
+- Economic growth indicators
 
-    # Note: current_date is set in each agent's before_callback to ensure it's always available
-    return None
+### 3. INDUSTRY PRESENCE
+- Existing similar businesses in the area
+- Consumer preferences and spending patterns
+- Market saturation indicators
+- Success stories or failures of similar businesses
 
-
-INTAKE_INSTRUCTION = """You are a request parser for a retail location intelligence system.
-
-Your task is to extract the target location and business type from the user's request.
-
-## Examples
-
-User: "I want to open a coffee shop in Indiranagar, Bangalore"
-→ target_location: "Indiranagar, Bangalore"
-→ business_type: "coffee shop"
-
-User: "Analyze the market for a new gym in downtown Seattle"
-→ target_location: "downtown Seattle"
-→ business_type: "gym"
-
-User: "Help me find the best location for a bakery in Mumbai"
-→ target_location: "Mumbai"
-→ business_type: "bakery"
-
-User: "Where should I open my restaurant in San Francisco's Mission District?"
-→ target_location: "Mission District, San Francisco"
-→ business_type: "restaurant"
+### 4. COMMERCIAL VIABILITY
+- Foot traffic patterns (weekday vs weekend)
+- Commercial real estate trends
+- Typical rental costs (qualitative: low/medium/high)
+- Business environment and regulations
 
 ## Instructions
-1. Extract the geographic location mentioned by the user
-2. Identify the type of business they want to open
-3. Note any additional context or requirements
+1. Use Google Search to find current, verifiable data
+2. Cite specific data points with sources where possible
+3. Focus on information from the last 1-2 years for relevance
+4. Be factual and data-driven, avoid speculation
 
-If the user doesn't specify a clear location or business type, make a reasonable inference or ask for clarification.
+## Output Format
+Provide a structured analysis covering all four focus areas.
+Conclude with a clear verdict: Is this a strong market for {business_type}? Why or why not?
+Include specific recommendations for market entry strategy.
 """
 
-intake_agent = LlmAgent(
-    name="IntakeAgent",
+market_research_agent = LlmAgent(
+    name="MarketResearchAgent",
     model=FAST_MODEL,
-    description="Parses user request to extract target location and business type",
-    instruction=INTAKE_INSTRUCTION,
+    description="Researches market viability using Google Search for real-time demographics, trends, and commercial data",
+    instruction=MARKET_RESEARCH_INSTRUCTION,
     generate_content_config=types.GenerateContentConfig(
         http_options=types.HttpOptions(
             retry_options=types.HttpRetryOptions(
@@ -90,7 +65,8 @@ intake_agent = LlmAgent(
             ),
         ),
     ),
-    output_schema=UserRequest,
-    output_key="parsed_request",
-    after_agent_callback=after_intake,
+    tools=[google_search],
+    output_key="market_research_findings",
+    before_agent_callback=before_market_research,
+    after_agent_callback=after_market_research,
 )
