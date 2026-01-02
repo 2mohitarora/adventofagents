@@ -1,95 +1,143 @@
-# retail-location-strategy
+# Retail AI Location Strategy with Google ADK
 
-A base ReAct agent built with Google's Agent Development Kit (ADK)
-Agent generated with [`googleCloudPlatform/agent-starter-pack`](https://github.com/GoogleCloudPlatform/agent-starter-pack) version `0.29.3`
+A multi-agent AI pipeline for retail site selection, built with [Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/) and Gemini.
 
-## Project Structure
+<table>
+  <thead>
+    <tr>
+      <th colspan="2">Key Features</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>🔍</td>
+      <td><strong>Multi-Agent Pipeline:</strong> 7 specialized agents for market research, competitor mapping, gap analysis, strategy synthesis, and report generation.</td>
+    </tr>
+    <tr>
+      <td>🗺️</td>
+      <td><strong>Real-World Data:</strong> Integrates Google Maps Places API for competitor mapping and Google Search for live market research.</td>
+    </tr>
+    <tr>
+      <td>🐍</td>
+      <td><strong>Code Execution:</strong> Python/pandas analysis for quantitative gap analysis with viability scoring.</td>
+    </tr>
+    <tr>
+      <td>🎨</td>
+      <td><strong>AI-Generated Outputs:</strong> Executive HTML reports and infographics via Gemini's native image generation.</td>
+    </tr>
+  </tbody>
+</table>
 
-This project is organized as follows:
+## What It Does
 
-```
-retail-location-strategy/
-├── app/                 # Core application code
-│   ├── agent.py         # Main agent logic
-│   ├── agent_engine_app.py # Agent Engine application logic
-│   └── app_utils/       # App utilities and helpers
-├── tests/               # Unit, integration, and load tests
-├── Makefile             # Makefile for common commands
-├── GEMINI.md            # AI-assisted development guide
-└── pyproject.toml       # Project dependencies and configuration
-```
+Given a location and business type, this pipeline automatically:
 
-> 💡 **Tip:** Use [Gemini CLI](https://github.com/google-gemini/gemini-cli) for AI-assisted development - project context is pre-configured in `GEMINI.md`.
+- Researches the market using live web search
+- Maps competitors using Google Maps Places API
+- Calculates viability scores with Python code execution
+- Generates strategic recommendations with extended reasoning
+- Produces an HTML executive report and visual infographic
 
-## Requirements
+---
 
-Before you begin, ensure you have:
-- **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
-- **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
-- **make**: Build automation tool - [Install](https://www.gnu.org/software/make/) (pre-installed on most Unix-based systems)
+## Getting Started: From Zero to Running Agent in 5 Minutes
 
+**Prerequisites:**
+- **[Python 3.10-3.12](https://www.python.org/downloads/)**
+- **[uv](https://github.com/astral-sh/uv)** (recommended) or pip
+- **[Google Maps API key](https://console.cloud.google.com/apis/credentials)** (with Places API enabled)
+- **[Google AI Studio API Key](https://aistudio.google.com/app/apikey)**.
 
-## Quick Start (Local Testing)
-
-Install required packages and launch the local development environment:
-
-```bash
-make install && make playground
-```
-> **📊 Observability Note:** Agent telemetry (Cloud Trace) is always enabled. Prompt-response logging (GCS, BigQuery, Cloud Logging) is **disabled** locally, **enabled by default** in deployed environments (metadata only - no prompts/responses). See [Monitoring and Observability](#monitoring-and-observability) for details.
-
-## Commands
-
-| Command              | Description                                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| `make install`       | Install all required dependencies using uv                                                  |
-| `make playground`    | Launch local development environment for testing agent |
-| `make deploy`        | Deploy agent to Agent Engine |
-| `make register-gemini-enterprise` | Register deployed agent to Gemini Enterprise ([docs](https://googlecloudplatform.github.io/agent-starter-pack/cli/register_gemini_enterprise.html)) |
-| `make test`          | Run unit and integration tests                                                              |
-| `make lint`          | Run code quality checks (codespell, ruff, mypy)                                             |
-
-For full command options and usage, refer to the [Makefile](Makefile).
-
-
-## Usage
-
-This template follows a "bring your own agent" approach - you focus on your business logic, and the template handles everything else (UI, infrastructure, deployment, monitoring).
-1. **Develop:** Edit your agent logic in `app/agent.py`.
-2. **Test:** Explore your agent functionality using the local playground with `make playground`. The playground automatically reloads your agent on code changes.
-3. **Enhance:** When ready for production, run `uvx agent-starter-pack enhance` to add CI/CD pipelines, Terraform infrastructure, and evaluation notebooks.
-
-The project includes a `GEMINI.md` file that provides context for AI tools like Gemini CLI when asking questions about your template.
-
-
-## Deployment
-
-You can deploy your agent to a Dev Environment using the following command:
+#### Step 1: Set Environment Variables
+Create a `.env` file in the `app` folder with your API keys (see `.env.example` for reference):
 
 ```bash
-gcloud config set project <your-dev-project-id>
-make deploy
+echo "GOOGLE_GENAI_USE_VERTEXAI=FALSE" >> app/.env
+echo "GOOGLE_API_KEY=YOUR_AI_STUDIO_API_KEY" >> app/.env
+echo "MAPS_API_KEY=YOUR_MAPS_API_KEY" >> app/.env
 ```
 
+#### Step 2: Install & Run
+From the `retail-ai-location-strategy` directory, install dependencies and start the server.
 
-When ready for production deployment with CI/CD pipelines and Terraform infrastructure, run `uvx agent-starter-pack enhance` to add these capabilities.
+```bash
+make install && make dev
+```
 
-## Monitoring and Observability
+#### What You'll See
 
-The application provides two levels of observability:
+1. Open `http://localhost:8501` in your browser
+2. Select **"app"** from the agent dropdown
+3. Type a query like: *"I want to open a coffee shop in Indiranagar, Bangalore"*
+4. Watch the 7-stage pipeline execute:
+   - **Intake** → Extract location and business type
+   - **Market Research** → Web search for demographics and trends
+   - **Competitor Mapping** → Google Maps Places API for competitors
+   - **Gap Analysis** → Python code execution for viability scores
+   - **Strategy Advisor** → Extended reasoning for recommendations
+   - **Report Generator** → HTML executive report
+   - **Infographic Generator** → Visual summary image
 
-**1. Agent Telemetry Events (Always Enabled)**
-- OpenTelemetry traces and spans exported to **Cloud Trace**
-- Tracks agent execution, latency, and system metrics
+Your agent is now running at `http://localhost:8501`.
 
-**2. Prompt-Response Logging (Configurable)**
-- GenAI instrumentation captures LLM interactions (tokens, model, timing)
-- Exported to **Google Cloud Storage** (JSONL), **BigQuery** (external tables), and **Cloud Logging** (dedicated bucket)
+## Agent Details
 
-| Environment | Prompt-Response Logging |
-|-------------|-------------------------|
-| **Local Development** (`make playground`) | ❌ Disabled by default |
+| Attribute | Description |
+| :--- | :--- |
+| **Interaction Type** | Workflow |
+| **Complexity** | Advanced |
+| **Agent Type** | Multi Agent (Sequential Pipeline) |
+| **Components** | Multi-agent, Function calling, Web search, Google Maps API, Code execution, Image generation |
+| **Vertical** | Retail / Real Estate |
 
-**To enable locally:** Set `LOGS_BUCKET_NAME` and `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT`.
 
-See the [observability guide](https://googlecloudplatform.github.io/agent-starter-pack/guide/observability.html) for detailed instructions, example queries, and visualization options.
+## Example Prompts
+
+| Region | Location | Business | Example Prompt |
+|--------|----------|----------|----------------|
+| Asia | Bangalore, India | Coffee Shop | "I want to open a coffee shop in Indiranagar, Bangalore" |
+| Asia | Tokyo, Japan | Ramen Restaurant | "Analyze Shibuya, Tokyo for opening a ramen restaurant" |
+| Asia | Singapore | Bubble Tea | "Where should I open a bubble tea shop in Orchard Road, Singapore?" |
+| Americas | Austin, Texas | Fitness Studio | "Where should I open a fitness studio in Austin, Texas?" |
+| Americas | Mexico City | Taco Restaurant | "Analyze Roma Norte, Mexico City for a taco restaurant" |
+| Americas | Toronto, Canada | Craft Brewery | "Help me find a location for a craft brewery in Toronto's Distillery District" |
+| Europe | London, UK | Bookstore Cafe | "Help me find the best location for a bookstore cafe in Shoreditch, London" |
+| Europe | Berlin, Germany | Vegan Restaurant | "Analyze Berlin's Kreuzberg for opening a vegan restaurant" |
+| Middle East | Dubai, UAE | Bakery | "I'm planning to open a bakery in Dubai Marina" |
+| Oceania | Sydney, Australia | Juice Bar | "Analyze the market for a juice bar in Bondi Beach, Sydney" |
+
+---
+
+## Architecture
+
+<p align="center">
+  <img src="assets/images/pipeline-architecture.png" alt="Pipeline Architecture" width="700">
+</p>
+
+The pipeline is built as a `SequentialAgent` that orchestrates 7 specialized sub-agents, each handling a specific phase of the analysis.
+
+### State Flow
+
+Each agent reads from and writes to a shared session state, enabling seamless data flow between stages:
+
+<p align="center">
+  <img src="assets/images/data-flow.png" alt="Data Flow Between Agents" width="650">
+</p>
+
+---
+## Learn More
+
+For detailed documentation, see **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)**:
+
+- [The Business Problem](DEVELOPER_GUIDE.md#the-business-problem) - Why this exists
+- [Architecture Deep Dive](DEVELOPER_GUIDE.md#architecture-deep-dive) - State flow and agent communication
+- [Agents and Tools](DEVELOPER_GUIDE.md#agents-and-tools) - Sub-agents, tools, callbacks, schemas
+- [Configuration](DEVELOPER_GUIDE.md#configuration) - Model selection and retry options
+- [Troubleshooting](DEVELOPER_GUIDE.md#troubleshooting) - Common issues and fixes
+
+## Troubleshooting
+
+If you encounter issues while setting up or running this agent, here are some resources to help you troubleshoot:
+- [ADK Documentation](https://google.github.io/adk-docs/): Comprehensive documentation for the Agent Development Kit
+- [Vertex AI Authentication Guide](https://cloud.google.com/vertex-ai/docs/authentication): Detailed instructions for setting up authentication
+- [Agent Starter Pack Troubleshooting](https://googlecloudplatform.github.io/agent-starter-pack/guide/troubleshooting.html): Common issues
