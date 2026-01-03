@@ -57,7 +57,7 @@ For each identified zone, compute:
 
 **Opportunity Metrics:**
 - Demand Signal: Based on population, income, infrastructure
-- Market Saturation Index: (Competitors × Quality) / Demand
+- Market Saturation Index: (Competitors * Quality) / Demand
 - Viability Score: Multi-factor weighted score
 
 ### Step 4: Zone Categorization
