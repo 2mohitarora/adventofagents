@@ -18,10 +18,10 @@ MAPS_API_KEY = os.environ.get("MAPS_API_KEY", "")
 # ============================================================================
 
 # Option 1: Gemini 2.5 Pro (RECOMMENDED - stable, good for production)
-#FAST_MODEL = "gemini-2.5-pro"
-#PRO_MODEL = "gemini-2.5-pro"
-#CODE_EXEC_MODEL = "gemini-2.5-pro"
-#IMAGE_MODEL = "gemini-3-pro-image-preview"  # Gemini 3 for native image generation
+FAST_MODEL = "gemini-2.5-pro"
+PRO_MODEL = "gemini-2.5-pro"
+CODE_EXEC_MODEL = "gemini-2.5-pro"
+IMAGE_MODEL = "gemini-3-pro-image-preview"  # Gemini 3 for native image generation
 
 # Option 2: Gemini 3 Pro Preview (latest features, may have availability issues)
 # FAST_MODEL = "gemini-3-pro-preview"
@@ -30,10 +30,10 @@ MAPS_API_KEY = os.environ.get("MAPS_API_KEY", "")
 # IMAGE_MODEL = "gemini-3-pro-image-preview"
 
 # Option 3: Gemini 2.5 Flash (fastest, lowest cost)
-FAST_MODEL = "gemini-2.5-flash"
-PRO_MODEL = "gemini-2.5-flash"
-CODE_EXEC_MODEL = "gemini-2.5-flash"
-IMAGE_MODEL = "gemini-2.0-flash-exp"
+#FAST_MODEL = "gemini-2.5-flash"
+#PRO_MODEL = "gemini-2.5-flash"
+#CODE_EXEC_MODEL = "gemini-2.5-flash"
+#IMAGE_MODEL = "gemini-2.0-flash-exp"
 
 # Retry Configuration (for handling model overload errors)
 # Note: HttpRetryOptions may only retry on certain HTTP codes (429, etc.)
