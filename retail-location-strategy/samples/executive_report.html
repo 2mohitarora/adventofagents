@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Intelligence Report: Austin Fitness Studio</title>
+    <style>
+        :root {
+            --primary-dark: #1e3a8a;
+            --primary-light: #3b82f6;
+            --success-dark: #059669;
+            --success-light: #10b981;
+            --warning-dark: #d97706;
+            --warning-light: #f59e0b;
+            --neutral-dark: #374151;
+            --neutral-medium: #6b7280;
+            --neutral-light: #e5e7eb;
+            --neutral-bg: #f9fafb;
+            --white: #ffffff;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--neutral-bg);
+            color: var(--neutral-dark);
+            line-height: 1.6;
+        }
+
+        .slide {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            box-sizing: border-box;
+            border-bottom: 1px solid var(--neutral-light);
+            page-break-after: always;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-top: 0;
+            line-height: 1.2;
+        }
+
+        h1 { font-size: 3rem; margin-bottom: 1rem; }
+        h2 { font-size: 2.5rem; margin-bottom: 2.5rem; text-align: center;}
+        h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+        h4 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--neutral-dark); }
+        p { margin-top: 0; margin-bottom: 1rem; }
+        .sub-heading {
+            color: var(--neutral-medium);
+            font-size: 1.25rem;
+            text-align: center;
+            margin-top: -2rem;
+            margin-bottom: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .text-sm { font-size: 0.875rem; color: var(--neutral-medium); }
+
+        /* Card Component */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Grid & Flex Layouts */
+        .grid { display: grid; gap: 2rem; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .flex { display: flex; }
+        .gap-8 { gap: 2rem; }
+        .items-center { align-items: center; }
+
+        /* Slide Specific Styles */
+
+        /* SLIDE 1: EXECUTIVE SUMMARY */
+        #slide-1 {
+            background: linear-gradient(45deg, var(--primary-dark), #1d4ed8);
+            color: var(--white);
+        }
+        #slide-1 h1, #slide-1 h2, #slide-1 h3, #slide-1 p {
+            color: var(--white);
+        }
+        .hero-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            align-items: center;
+            gap: 4rem;
+        }
+        .score-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+        .score-value {
+            font-size: 8rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--success-light);
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }
+        .score-label {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .hero-title {
+            font-size: 2.25rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+        .hero-location {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        .hero-summary {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            opacity: 0.9;
+        }
+        .report-meta {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--white);
+            opacity: 0.6;
+        }
+
+        /* SLIDE 2: TOP RECOMMENDATION */
+        .details-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+        .strength-card, .concern-card {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+        .icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-success { background-color: #d1fae5; }
+        .icon-success svg { color: var(--success-dark); }
+        .icon-warning { background-color: #fef3c7; }
+        .icon-warning svg { color: var(--warning-dark); }
+        .evidence {
+            font-style: italic;
+            color: var(--neutral-medium);
+            margin-top: 0.75rem;
+            padding-left: 1rem;
+            border-left: 3px solid var(--neutral-light);
+            font-size: 0.9rem;
+        }
+        .meta-card {
+            border: 1px solid var(--neutral-light);
+            background-color: var(--neutral-bg);
+            box-shadow: none;
+        }
+        .meta-card h3 {
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--neutral-light);
+        }
+        .meta-item:last-child { border-bottom: none; }
+        .meta-label { font-weight: 600; }
+        .meta-value { color: var(--primary-dark); }
+
+        /* SLIDE 3: COMPETITION */
+        .stat-card {
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            border: 1px solid var(--neutral-light);
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-value {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--neutral-medium);
+            margin-top: 0.75rem;
+        }
+        .text-success { color: var(--success-dark); }
+        .text-warning { color: var(--warning-dark); }
+
+        /* SLIDE 5: ALTERNATIVES */
+        .alt-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .alt-score {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+        }
+        .alt-strength, .alt-concern {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        .alt-strength { background-color: #f0fdf4; }
+        .alt-concern { background-color: #fffbeb; }
+        .alt-icon svg { width: 24px; height: 24px; }
+        .alt-strength .alt-icon svg { color: var(--success-dark); }
+        .alt-concern .alt-icon svg { color: var(--warning-dark); }
+        .alt-reason {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--neutral-light);
+            font-size: 0.9rem;
+            color: var(--neutral-medium);
+        }
+        .alt-reason strong { color: var(--neutral-dark); }
+
+        /* SLIDE 6: NEXT STEPS */
+        .insights-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .insights-list li {
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 1.5rem;
+        }
+        .insights-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 20px;
+            height: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%233b82f6'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd' /%3E%3C/svg%3E");
+        }
+
+        .steps-list {
+            list-style: none;
+            counter-reset: steps-counter;
+            padding-left: 0;
+        }
+        .steps-list li {
+            counter-increment: steps-counter;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+        }
+        .steps-list li::before {
+            content: counter(steps-counter);
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--white);
+            background-color: var(--primary-light);
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        /* SLIDE 7: METHODOLOGY */
+        #slide-7 .methodology-text {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--primary-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-layout { grid-template-columns: 1fr; gap: 2rem; text-align: center;}
+            .score-card { margin: 0 auto; max-width: 300px;}
+            .details-grid { grid-template-columns: 1fr; }
+            .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            .hero-location { font-size: 2.5rem; }
+            .slide { padding: 3rem 1rem; }
+            .grid-cols-2, .grid-cols-3, .grid-cols-4 { grid-template-columns: 1fr; }
+        }
+
+        /* Print Styles */
+        @media print {
+            html, body {
+                scroll-behavior: auto;
+            }
+            .slide {
+                min-height: auto;
+                height: 100vh;
+                padding: 2rem;
+                box-shadow: none;
+                border: none;
+                page-break-after: always;
+                display: block;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid var(--neutral-light);
+            }
+            #slide-1 {
+                background: none;
+            }
+            #slide-1 h1, #slide-1 h2, #slide-1 h3, #slide-1 p, #slide-1 .score-label {
+                color: var(--primary-dark);
+            }
+            .score-card {
+                background: var(--neutral-bg);
+                border: 1px solid var(--neutral-light);
+            }
+            .report-meta {
+                display: none;
+            }
+            .card:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SLIDE 1: EXECUTIVE SUMMARY -->
+    <section id="slide-1" class="slide">
+        <div class="container">
+            <div class="hero-layout">
+                <div class="score-card">
+                    <div class="score-value">81</div>
+                    <div class="score-label">Overall Score</div>
+                </div>
+                <div>
+                    <h2 class="hero-title">Top Recommendation</h2>
+                    <h1 class="hero-location">North Austin</h1>
+                    <p class="hero-summary">
+                        Austin is a strong market for a new fitness studio, supported by favorable demographics and a robust economy. However, the landscape is competitive, necessitating a strategic, differentiated approach that avoids hyper-saturated zones and targets specific underserved customer segments.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="report-meta">
+            Location Intelligence Report: Fitness Studio | Austin, Texas | 2026-01-05
+        </div>
+    </section>
+
+    <!-- SLIDE 2: TOP RECOMMENDATION DETAILS -->
+    <section id="slide-2" class="slide">
+        <div class="container">
+            <h2>Recommendation Deep Dive: North Austin</h2>
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <h3>Strengths</h3>
+                    <div class="grid gap-8">
+                        <div class="strength-card">
+                             <div class="icon icon-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                            </div>
+                            <div>
+                                <h4>High Unmet Demand</h4>
+                                <p>This zone exhibits the strongest market fundamentals, driven by a dense, high-income population of tech professionals and families, coupled with significant new residential development.</p>
+                                <p class="evidence"><strong>Evidence:</strong> Achieved a perfect 5.0 'Demand_Signal' score in the quantitative analysis, the highest of all zones.</p>
+                            </div>
+                        </div>
+                        <div class="strength-card">
+                             <div class="icon icon-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            </div>
+                            <div>
+                                <h4>Identified Service Gap</h4>
+                                <p>Despite competitors along major corridors, vast residential areas between these arteries are significantly underserved by convenient, high-quality boutique fitness options.</p>
+                                <p class="evidence"><strong>Evidence:</strong> The competitor density of 2.0 is less than a third of Downtown's (7.0), confirming a geographic service gap.</p>
+                            </div>
+                        </div>
+                         <div class="strength-card">
+                             <div class="icon icon-success">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2h3.19M15 6h2c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2h-3.19"></path><path d="M9 6h6"></path><path d="M12 12V6"></path><path d="M12 18v-6"></path></svg>
+                            </div>
+                            <div>
+                                <h4>Excellent Infrastructure</h4>
+                                <p>The area is well-connected and benefits from ongoing development and major transportation routes, making it highly accessible for its target residential population.</p>
+                                <p class="evidence"><strong>Evidence:</strong> Scored the highest (5 out of 5) for Infrastructure Quality in the quantitative model.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3>Concerns & Mitigations</h3>
+                     <div class="grid gap-8">
+                        <div class="concern-card">
+                             <div class="icon icon-warning">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                            </div>
+                            <div>
+                                <h4>Moderate Existing Competition</h4>
+                                <p>Established studios and large chains operate on main commercial roads.</p>
+                                <p class="evidence"><strong>Mitigation:</strong> Focus site selection on identified 'service gaps' within residential pockets. Offer a specialized modality (e.g., strength, HIIT).</p>
+                            </div>
+                        </div>
+                        <div class="concern-card">
+                             <div class="icon icon-warning">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            </div>
+                            <div>
+                                <h4>High Real Estate Costs</h4>
+                                <p>Commercial rental and build-out costs are significant in this premier growth area.</p>
+                                <p class="evidence"><strong>Mitigation:</strong> Target smaller-footprint locations in neighborhood retail strips rather than premium developments to manage overhead.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="meta-card" style="margin-top: 2rem;">
+                        <h3>Profile</h3>
+                        <div class="meta-item"><span class="meta-label">Opportunity Type</span><span class="meta-value">Residential Sticky</span></div>
+                        <div class="meta-item"><span class="meta-label">Best Customer Segment</span><span class="meta-value">Tech Professionals & Families</span></div>
+                        <div class="meta-item"><span class="meta-label">Location</span><span class="meta-value">Allandale, Crestview, Wooten</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 3: COMPETITION ANALYSIS -->
+    <section id="slide-3" class="slide">
+        <div class="container">
+            <h2>Competition Analysis: North Austin</h2>
+            <p class="sub-heading">The competitive landscape is present but not saturated, offering a window for a differentiated new entrant.</p>
+            <div class="grid grid-cols-4 gap-8">
+                <div class="card stat-card">
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Total Competitors in Zone</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value text-success">2.0</div>
+                    <div class="stat-label">Density (per km²)</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value text-warning">50.0%</div>
+                    <div class="stat-label">Chain Dominance</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value text-success">4.75</div>
+                    <div class="stat-label">Avg. Competitor Rating</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 4: MARKET CHARACTERISTICS -->
+    <section id="slide-4" class="slide">
+        <div class="container">
+            <h2>Market Characteristics: North Austin</h2>
+            <p class="sub-heading">The underlying market fundamentals strongly support the viability of a new premium fitness studio.</p>
+            <div class="grid grid-cols-3 gap-8">
+                <div class="card">
+                    <h3>Population Density</h3>
+                    <p class="stat-value" style="font-size: 3rem; color: var(--success-dark);">High</p>
+                    <p>A dense population of target consumers provides a consistent, built-in customer base.</p>
+                </div>
+                <div class="card">
+                    <h3>Income Level</h3>
+                    <p class="stat-value" style="font-size: 3rem; color: var(--success-dark);">High</p>
+                    <p>High disposable income supports premium pricing models and boutique offerings.</p>
+                </div>
+                <div class="card">
+                    <h3>Infrastructure Access</h3>
+                    <p class="stat-value" style="font-size: 3rem; color: var(--success-dark);">Excellent</p>
+                    <p>Easy access via major corridors like Mopac Expressway and Burnet Road.</p>
+                </div>
+                <div class="card">
+                    <h3>Foot Traffic Pattern</h3>
+                    <p class="stat-value" style="font-size: 3rem; color: var(--primary-dark);">Consistent</p>
+                    <p>Routine-based traffic from a dense residential population ensures predictable peak hours.</p>
+                </div>
+                <div class="card">
+                    <h3>Rental Cost Tier</h3>
+                    <p class="stat-value" style="font-size: 3rem; color: var(--warning-dark);">High</p>
+                    <p>A primary financial consideration requiring careful site selection and business modeling.</p>
+                </div>
+                 <div class="card">
+                    <h3>Best Customer Segment</h3>
+                    <p class="stat-value" style="font-size: 3rem; color: var(--primary-dark);">Targeted</p>
+                    <p>A specific, identifiable audience of Tech Professionals and Families simplifies marketing efforts.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 5: ALTERNATIVE LOCATIONS -->
+    <section id="slide-5" class="slide">
+        <div class="container">
+            <h2>Alternative Locations Considered</h2>
+            <p class="sub-heading">Two other zones showed potential but carried higher risks or a longer path to profitability compared to the top recommendation.</p>
+            <div class="grid grid-cols-2 gap-8">
+                <div class="card alt-card">
+                    <h3>1. East Austin (Growth Zone)</h3>
+                    <div class="alt-score">55</div>
+                    <div class="alt-strength">
+                        <div class="alt-icon">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                        </div>
+                        <p><strong>Strength:</strong> Lowest market saturation (0.58 index) and highest viability score (2.36) offer a clear path to market entry.</p>
+                    </div>
+                    <div class="alt-concern">
+                        <div class="alt-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                        </div>
+                        <p><strong>Concern:</strong> The market's demand is still developing; it's a bet on future growth, not established demand.</p>
+                    </div>
+                    <div class="alt-reason">
+                        <strong>Why Not Top Choice:</strong> Its current demand signal (3.4) is significantly lower than North Austin's (5.0), presenting a higher risk and a longer path to profitability.
+                    </div>
+                </div>
+                <div class="card alt-card">
+                    <h3>2. South Austin</h3>
+                    <div class="alt-score">46</div>
+                     <div class="alt-strength">
+                        <div class="alt-icon">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"></path><path d="M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"></path></svg>
+                        </div>
+                        <p><strong>Strength:</strong> A surprisingly low market saturation index (0.54) suggests there is still room for new entrants.</p>
+                    </div>
+                    <div class="alt-concern">
+                        <div class="alt-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                        </div>
+                        <p><strong>Concern:</strong> The landscape is dominated by large, national chains (100% chain dominance), making it difficult for an independent brand to stand out.</p>
+                    </div>
+                    <div class="alt-reason">
+                        <strong>Why Not Top Choice:</strong> The risk of being overshadowed by large, established brands is much higher. Success would require a highly niche offering and substantial marketing budget.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 6: KEY INSIGHTS & NEXT STEPS -->
+    <section id="slide-6" class="slide">
+        <div class="container">
+            <h2>Insights & Next Steps</h2>
+            <div class="grid grid-cols-2 gap-8">
+                <div class="card">
+                    <h3>Key Strategic Insights</h3>
+                    <ul class="insights-list">
+                        <li>Austin's fitness market has hyper-saturated cores alongside underserved residential areas.</li>
+                        <li>Success lies in geographic and demographic niche targeting, not head-on competition.</li>
+                        <li>Consumer trends toward specialized modalities provide a clear product-market fit strategy.</li>
+                        <li>High real estate costs necessitate business models viable in smaller-footprint spaces.</li>
+                        <li>A strong local brand can effectively compete against national chains.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Actionable Next Steps</h3>
+                    <ol class="steps-list">
+                        <li>Conduct on-the-ground scouting of retail spaces along Koenig Lane, Anderson Lane, and adjacent streets.</li>
+                        <li>Develop three distinct boutique concepts (e.g., Strength, HIIT, Premium Yoga) to test with local focus groups.</li>
+                        <li>Engage a commercial real estate agent specializing in North Austin to identify suitable properties.</li>
+                        <li>Initiate hyper-local digital marketing campaigns in zips 78757 and 78756 to build pre-launch brand awareness.</li>
+                        <li>Create a financial model comparing a smaller, premium studio vs. a larger, mid-tier offering based on local rental rates.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SLIDE 7: METHODOLOGY -->
+    <section id="slide-7" class="slide">
+        <div class="container">
+            <h2>Methodology</h2>
+            <div class="methodology-text">
+                <p>This recommendation is the result of a multi-stage analysis that integrated qualitative market research, on-the-ground competitor mapping across five fitness categories, and a quantitative gap analysis.</p>
+                <p>A weighted scoring model was applied to four distinct geographic zones, evaluating them on demand signals (population growth, income), market saturation (competitor density, quality), and commercial viability (costs, infrastructure) to identify the location with the optimal balance of high opportunity and manageable risk.</p>
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
