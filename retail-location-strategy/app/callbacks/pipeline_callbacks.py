@@ -250,7 +250,7 @@ def _extract_python_code_from_content(content: str) -> str:
     return "\n\n# ---\n\n".join(code_blocks)
 
 
-async def after_strategy_advisor(callback_context: CallbackContext) -> Optional[types.Content]:
+def after_strategy_advisor(callback_context: CallbackContext) -> Optional[types.Content]:
     """Log completion and save JSON artifact."""
     report = callback_context.state.get("strategic_report", {})
     logger.info("STAGE 3: COMPLETE - Strategic report generated")
