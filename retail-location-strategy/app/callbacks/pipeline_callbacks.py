@@ -269,8 +269,13 @@ def after_strategy_advisor(callback_context: CallbackContext) -> Optional[types.
                 data=json_str.encode('utf-8'),
                 mime_type="application/json"
             )
-            await callback_context.save_artifact("intelligence_report.json", json_artifact)
-            logger.info("  Saved artifact: intelligence_report.json")
+            artifact_filename = "intelligence_report.json"
+
+            version = callback_context.save_artifact(
+                filename=artifact_filename,
+                artifact=json_artifact
+            )
+            logger.info("  Saved artifact: intelligence_report.json (version {version})")
         except Exception as e:
             logger.warning(f"  Failed to save JSON artifact: {e}")
 
