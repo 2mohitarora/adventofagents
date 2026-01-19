@@ -11,3 +11,6 @@ wheels/
 .DS_Store
 .env
 .adk
+
+# Auto Claude data directory
+.auto-claude/
